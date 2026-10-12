@@ -8,6 +8,7 @@ type Job = {
   company: string;
   city: string;
   salary: number;
+  job_type: string;
 };
 
 const API_URL = "http://localhost:8080/api/jobs";
@@ -18,6 +19,7 @@ export default function Home() {
   const [company, setCompany] = useState("");
   const [city, setCity] = useState("");
   const [salary, setSalary] = useState("");
+  const [job_type, setJobType] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState("");
 
@@ -46,6 +48,7 @@ export default function Home() {
     setCompany("");
     setCity("");
     setSalary("");
+    setJobType("");
     setEditingId(null);
   }
 
@@ -58,6 +61,7 @@ export default function Home() {
       company,
       city,
       salary: Number(salary),
+      job_type,
     };
 
     try {
@@ -89,6 +93,7 @@ export default function Home() {
     setCompany(job.company);
     setCity(job.city);
     setSalary(String(job.salary));
+    setJobType(job.job_type);
   }
 
   async function deleteJob(id: number) {
@@ -147,6 +152,18 @@ export default function Home() {
           required
         />
 
+        <select
+          value={job_type}
+          onChange={(e) => setJobType(e.target.value)}
+          required
+        >
+          <option value="">Select Job Type</option>
+          <option value="FULL_TIME">Full Time</option>
+          <option value="PART_TIME">Part Time</option>
+          <option value="CONTRACT">Contract</option>
+          <option value="INTERNSHIP">Internship</option>
+        </select>
+
         <button type="submit">
           {editingId === null ? "Add Job" : "Save Changes"}
         </button>
@@ -171,6 +188,7 @@ export default function Home() {
               <th>Company</th>
               <th>City</th>
               <th>Salary</th>
+              <th>Job Type</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -183,6 +201,7 @@ export default function Home() {
                 <td>{job.company}</td>
                 <td>{job.city}</td>
                 <td>{Number(job.salary).toFixed(2)}</td>
+                <td>{job.job_type}</td>
                 <td>
                   <button onClick={() => editJob(job)}>Edit</button>{" "}
                   <button
