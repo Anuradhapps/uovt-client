@@ -12,6 +12,9 @@ type Job = {
 };
 
 const API_URL = "http://localhost:8080/api/jobs";
+const AUTH_HEADERS = {
+  Authorization: `Basic ${btoa("admin:admin123")}`,
+};
 
 export default function Home() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -25,7 +28,9 @@ export default function Home() {
 
   async function loadJobs() {
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, {
+        headers: AUTH_HEADERS,
+      });
 
       if (!response.ok) {
         throw new Error("Could not load jobs.");
@@ -70,6 +75,7 @@ export default function Home() {
         {
           method: editingId === null ? "POST" : "PUT",
           headers: {
+            ...AUTH_HEADERS,
             "Content-Type": "application/json",
           },
           body: JSON.stringify(job),
@@ -102,6 +108,7 @@ export default function Home() {
     try {
       const response = await fetch(`${API_URL}/${id}`, {
         method: "DELETE",
+        headers: AUTH_HEADERS,
       });
 
       if (!response.ok) {
@@ -216,7 +223,7 @@ export default function Home() {
 
             {jobs.length === 0 && (
               <tr>
-                <td colSpan={6}>No jobs found.</td>
+                <td colSpan={7}>No jobs found.</td>
               </tr>
             )}
           </tbody>
