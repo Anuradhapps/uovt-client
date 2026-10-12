@@ -1,69 +1,208 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState, FormEvent } from "react";
+
+type Job = {
+  id: number;
+  title: string;
+  company: string;
+  city: string;
+  salary: number;
+};
+
+const API_URL = "http://localhost:8080/api/jobs";
 
 export default function Home() {
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [title, setTitle] = useState("");
+  const [company, setCompany] = useState("");
+  const [city, setCity] = useState("");
+  const [salary, setSalary] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [error, setError] = useState("");
+
+  async function loadJobs() {
+    try {
+      const response = await fetch(API_URL);
+
+      if (!response.ok) {
+        throw new Error("Could not load jobs.");
+      }
+
+      const data: Job[] = await response.json();
+      setJobs(data);
+      setError("");
+    } catch {
+      setError("Cannot connect to the API. Check Spring Boot.");
+    }
+  }
+
+  useEffect(() => {
+    loadJobs();
+  }, []);
+
+  function clearForm() {
+    setTitle("");
+    setCompany("");
+    setCity("");
+    setSalary("");
+    setEditingId(null);
+  }
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+
+    const job = {
+      title,
+      company,
+      city,
+      salary: Number(salary),
+    };
+
+    try {
+      const response = await fetch(
+        editingId === null ? API_URL : `${API_URL}/${editingId}`,
+        {
+          method: editingId === null ? "POST" : "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(job),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Could not save job.");
+      }
+
+      clearForm();
+      await loadJobs();
+    } catch {
+      setError("Failed to save the job.");
+    }
+  }
+
+  function editJob(job: Job) {
+    setEditingId(job.id);
+    setTitle(job.title);
+    setCompany(job.company);
+    setCity(job.city);
+    setSalary(String(job.salary));
+  }
+
+  async function deleteJob(id: number) {
+    if (!window.confirm("Delete this job?")) return;
+
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Could not delete job.");
+      }
+
+      await loadJobs();
+    } catch {
+      setError("Failed to delete the job.");
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="container">
+      <h1>Job Management System</h1>
+
+      <h2>{editingId === null ? "Add Job" : "Update Job"}</h2>
+
+      <form onSubmit={handleSubmit} className="job-form">
+        <input
+          placeholder="Job title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        <input
+          placeholder="Company"
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+          required
+        />
+
+        <input
+          placeholder="City"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          required
+        />
+
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          placeholder="Salary"
+          value={salary}
+          onChange={(e) => setSalary(e.target.value)}
+          required
+        />
+
+        <button type="submit">
+          {editingId === null ? "Add Job" : "Save Changes"}
+        </button>
+
+        {editingId !== null && (
+          <button type="button" onClick={clearForm}>
+            Cancel
+          </button>
+        )}
+      </form>
+
+      {error && <p className="error">{error}</p>}
+
+      <h2>All Jobs</h2>
+
+      <div className="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Company</th>
+              <th>City</th>
+              <th>Salary</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {jobs.map((job) => (
+              <tr key={job.id}>
+                <td>{job.id}</td>
+                <td>{job.title}</td>
+                <td>{job.company}</td>
+                <td>{job.city}</td>
+                <td>{Number(job.salary).toFixed(2)}</td>
+                <td>
+                  <button onClick={() => editJob(job)}>Edit</button>{" "}
+                  <button
+                    className="delete-button"
+                    onClick={() => deleteJob(job.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+
+            {jobs.length === 0 && (
+              <tr>
+                <td colSpan={6}>No jobs found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </main>
   );
 }
