@@ -3,7 +3,7 @@ name: Deploy Next.js Jobs Frontend
 on:
   push:
     branches:
-      - feature/authentication
+      - main
   workflow_dispatch:
 
 permissions:
