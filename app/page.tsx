@@ -11,7 +11,7 @@ type Job = {
   job_type: string;
 };
 
-const API_URL = "http://localhost:8080/api/jobs";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/jobs";
 const AUTH_HEADERS = {
   Authorization: `Basic ${btoa("admin:admin123")}`,
 };
