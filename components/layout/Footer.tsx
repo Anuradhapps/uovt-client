@@ -56,7 +56,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-200 py-4 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} UOVT. All rights reserved.
+          © 2026 UOVT. All rights reserved.
         </div>
       </Container>
     </footer>
